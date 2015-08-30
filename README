@@ -1,0 +1,49 @@
+Hidef is a read only simple cache intended to reduce data copy
+overhead that other methods have.
+
+=Why write this?
+
+This extension was originally meant as a replacement for 
+apc_load_constants(). It was meant to replace constants in
+php scripts with in-place compile-time constants. Eventually,
+everything in APC that could be done read-only got shunted 
+into it.
+
+=How does it work?
+
+Hidef is initialized in php module init, before apache starts spawning
+children. Hidef loads up all files "*.data" in a given hidef.data_dir
+ini param, unserializes them and copies them into persistent php memory.
+
+Since the engine init is not done at this point, unserializing an
+object would crash the system. So the data can only be basic php
+datastructures - arrays, hashes & scalars.
+
+After it is loaded, this data is not modified. But PHP uses refcount
+to track object references, so giving out persistent data to php 
+function calls is not possible. APC uses a full-copy approach which
+copies the entire array/hash into local memory before returning. This
+is expensive, but APC has to do it to avoid locking the cache for the
+entire access pattern. 
+
+Hidef doesn't have to lock, because the data is immutable. And the pointers
+are valid forever in that process. For scalar data types, the cost of 
+copying is minimal, but for arrays & hashes, we can wrap them in 
+an accesor object pointing to the data in immutable space. Since the
+objects are opaque constructs, the refcounts of the objects do not 
+affect the refcount of the arrays & consistency is maintained.
+
+FrozenArray is the name of this data structure. This allows array like
+access with $a["x"] and iteration using foreach() loops.
+
+If the original data structure is required for some reason, like a
+array_keys() call later on, this can be thawed into a the original
+data structure by doing a $a->thaw() or an even simpler (array)($a)
+cast. A thaw operation is almost identical to the unserialize operation,
+except since the data is already in memory, the operation is faster.
+
+=Where to use it for 
+
+Something like a localization table would be ideal to store in 
+this cache. Since no updates are possible in hidef without restarting
+apache, data with a short life-span obviously doesn't belong in this.
