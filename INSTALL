@@ -1,0 +1,29 @@
+Installation Instructions for Hidef
+-----------------------------------
+
+(fill in details about compiling it)
+
+INI Configuration
+-----------------
+The extension can be loaded using
+
+extension=hidef.so
+hidef.ini_path=/etc/php/hidef/
+
+You can create the constant ini files in the ini_path defined as
+above. By default it is set as the "hidef/" subdirectory of the 
+default directory php scans for ini files (e.g /etc/php/). The 
+constants can be defined in ini files inside that directory, with 
+the following self-explanatory syntax.
+
+int ANSWER = 42;
+str ECHO_GNOMICS="
+     1. Steal underpants
+     2. ???
+     3. Profit !!
+";
+float PIE = 3.14159;
+
+And test it quickly with 
+
+php -r 'echo $ECHO_GNOMICS;'
