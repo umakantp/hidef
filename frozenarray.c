@@ -1043,7 +1043,7 @@ zval* frozen_array_unserialize(const char* filename TSRMLS_DC)
 	zval* retval;
 	long len = 0;
 	struct stat sb;
-	char *contents, *tmp;
+	char *contents, *tmp, *conl;
 	FILE *fp;
 	php_unserialize_data_t var_hash;
 	HashTable class_table = {0,};
@@ -1080,10 +1080,16 @@ zval* frozen_array_unserialize(const char* filename TSRMLS_DC)
 	orig_class_table = EG(class_table);
 	EG(class_table) = &class_table;
 	zend_objects_store_init(&EG(objects_store), 1024);
-	
+	conl = contents+len;
+
 	/* I wish I could use json */
-	if(!php_var_unserialize(&data, (const unsigned char**)&tmp, (const unsigned char**)contents+len, &var_hash TSRMLS_CC))
+#ifdef ZEND_ENGINE_2_6
+	if(!php_var_unserialize(&data, (const unsigned char**)&tmp, (const unsigned char*)&conl, &var_hash TSRMLS_CC))
 	{
+#else
+    if(!php_var_unserialize(&data, (const unsigned char**)&tmp, (const unsigned char**)contents+len, &var_hash TSRMLS_CC))
+    {
+#endif
 		zval_ptr_dtor(&data);
 		free(contents);
 		fclose(fp);

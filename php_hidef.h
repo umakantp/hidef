@@ -44,6 +44,10 @@ extern zend_module_entry hidef_module_entry;
 #define ZEND_ENGINE_2_4
 #endif
 
+#if ZEND_MODULE_API_NO >= 20131226
+#define ZEND_ENGINE_2_6
+#endif
+
 #if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION == 3 && PHP_RELEASE_VERSION < 2
 #define ZEND_BROKEN_INI_SCANNER 1
 #endif
@@ -116,6 +120,10 @@ ZEND_END_MODULE_GLOBALS(hidef)
 /* {{{ extern hidef_globals */
 ZEND_EXTERN_MODULE_GLOBALS(hidef)
 /* }}} */
+
+#ifdef ZEND_ENGINE_2_6
+#define IS_CONSTANT_ARRAY IS_CONSTANT_AST
+#endif
 
 #ifdef ZTS
 #define HIDEF_G(v) TSRMG(hidef_globals_id, zend_hidef_globals *, v)
